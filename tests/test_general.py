@@ -89,11 +89,8 @@ def test_backwards_compatible_fitting():
 
     model = {y: a*x**b}
 
-    try:
+    with pytest.raises(TypeError):
         fit = Fit(model, x=xdata, y=ydata)
-        assert False
-    except TypeError:
-        assert True
 
 
 def test_vector_fitting():
@@ -451,10 +448,8 @@ def test_gaussian_2d_fitting():
 
     assert fit_result.value(x0) == pytest.approx(np.mean(data[:, 0]), 1e-1)
     assert fit_result.value(y0) == pytest.approx(np.mean(data[:, 1]), 1e-1)
-    assert np.abs(fit_result.value(sig_x)) == pytest.approx(
-        np.std(data[:, 0]), 1e-1)
-    assert np.abs(fit_result.value(sig_y)) == pytest.approx(
-        np.std(data[:, 1]), 1e-1)
+    assert np.abs(fit_result.value(sig_x)) == pytest.approx(np.std(data[:, 0]), 1e-1)
+    assert np.abs(fit_result.value(sig_y)) == pytest.approx(np.std(data[:, 1]), 1e-1)
     assert fit_result.r_squared >= 0.99
 
 
@@ -501,23 +496,14 @@ def test_likelihood_fitting_exponential():
     stdev = np.std(xdata)
     mean_stdev = stdev / np.sqrt(len(xdata))
 
-    try:
+    with pytest.raises(TypeError):
         fit = Fit(pdf, x=xdata, sigma_y=2.0, objective=LogLikelihood)
-        assert False
-    except TypeError:
-        assert True
-
     fit = Fit(pdf, xdata, objective=LogLikelihood)
     fit_result = fit.execute()
     pdf_i = fit.model(x=xdata, **fit_result.params).y  # probabilities
     likelihood = np.product(pdf_i)
     loglikelihood = np.sum(np.log(pdf_i))
 
-    assert fit_result.value(b) == pytest.approx(mean, 1e-3)
-    assert fit_result.value(b) == pytest.approx(mean, 1e-3)
-    assert fit_result.value(b) == pytest.approx(mean, 1e-3)
-    assert fit_result.value(b) == pytest.approx(mean, 1e-3)
-    assert fit_result.value(b) == pytest.approx(mean, 1e-3)
     assert fit_result.value(b) == pytest.approx(mean, 1e-3)
     assert fit_result.value(b) == pytest.approx(stdev, 1e-3)
     assert fit_result.stdev(b) == pytest.approx(mean_stdev, 1e-3)
@@ -589,12 +575,8 @@ def test_likelihood_fitting_bivariate_gaussian():
     marginal = integrate(pdf, (y, -oo, oo), conds='none')
     fit = Fit(marginal, x=xdata, objective=LogLikelihood)
     
-    try:
-        # Should raise a NameError, not a TypeError, see #219
+    with pytest.raises(NameError):
         fit.execute()
-        assert False
-    except NameError:
-        assert True
 
 
 def test_evaluate_model():
@@ -646,12 +628,10 @@ def test_simple_sigma():
     popt_sameweights, pcov_sameweights = curve_fit(lambda y, p: (
         2 * y / p)**0.5, y_data, t_data, sigma=0.0031*np.ones(len(y_data)), absolute_sigma=False)
     assert fit_result.value(g) == pytest.approx(popt_sameweights[0], 1e-4)
-    assert fit_result.stdev(g) == pytest.approx(
-        np.sqrt(pcov_sameweights[0, 0]), 1e-4)
+    assert fit_result.stdev(g) == pytest.approx(np.sqrt(pcov_sameweights[0, 0]), 1e-4)
     # Same weight everywere should be the same as no weight when absolute_sigma=False
     assert fit_result.value(g) == pytest.approx(popt_noweights[0], 1e-4)
-    assert fit_result.stdev(g) == pytest.approx(
-        np.sqrt(pcov_noweights[0, 0]), 1e-4)
+    assert fit_result.stdev(g) == pytest.approx(np.sqrt(pcov_noweights[0, 0]), 1e-4)
 
     # Different sigma for every point
     fit = Fit(t_model, y_data, t_data, 0.1*sigma_t, absolute_sigma=False)
@@ -766,16 +746,14 @@ def test_error_analytical():
     popt, pcov = curve_fit(lambda x, a: a * np.ones_like(x),
                            xn, yn, sigma=sigma, absolute_sigma=True)
     assert fit_result.value(a) == pytest.approx(popt[0], 1e-5)
-    assert fit_result.stdev(a) == pytest.approx(
-        np.sqrt(np.diag(pcov))[0], 1e-2)
+    assert fit_result.stdev(a) == pytest.approx(np.sqrt(np.diag(pcov))[0], 1e-2)
 
     fit_no_sigma = Fit(model, yn)
     fit_result_no_sigma = fit_no_sigma.execute()
 
     popt, pcov = curve_fit(lambda x, a: a * np.ones_like(x), xn, yn,)
     # With or without sigma, the bestfit params should be in agreement in case of equal weights
-    assert fit_result.value(a) == pytest.approx(
-        fit_result_no_sigma.value(a), 1e-5)
+    assert fit_result.value(a) == pytest.approx(fit_result_no_sigma.value(a), 1e-5)
     # Since symfit is all about absolute errors, the sigma will not be in agreement
     assert not fit_result.stdev(a) == fit_result_no_sigma.stdev(a) == 5
     assert fit_result_no_sigma.stdev(a) == pytest.approx(pcov[0][0]**0.5, 1e-5)

@@ -1,3 +1,9 @@
+"""
+Tests for the `Fit` object. This object does
+everything the normal `NumericalLeastSquares` does and more. Tests should
+therefore cover the full range of scenarios `symfit` currently handles.
+"""
+
 from __future__ import division, print_function
 import pytest
 import sys
@@ -23,13 +29,6 @@ from symfit import (
     Symbol, MatrixSymbol, Inverse, CallableModel, sqrt, Sum, Idx, symbols
 )
 from tests.test_minimizers import subclasses
-
-
-"""
-Tests for the `Fit` object. This object does
-everything the normal `NumericalLeastSquares` does and more. Tests should
-therefore cover the full range of scenarios `symfit` currently handles.
-"""
 
 
 def test_simple_kinetics():
@@ -403,12 +402,9 @@ def test_vector_parameter_error():
     fit_result = fit.execute()
     # The standard deviation in the mean is stdev/sqrt(N),
     # see test_param_error_analytical
-    assert fit_result.stdev(
-        a)/np.sqrt(pcov[0, 0]/N) == pytest.approx(1.0, 1e-4)
-    assert fit_result.stdev(
-        b)/np.sqrt(pcov[1, 1]/N) == pytest.approx(1.0, 1e-4)
-    assert fit_result.stdev(
-        c)/np.sqrt(pcov[2, 2]/N) == pytest.approx(1.0, 1e-4)
+    assert fit_result.stdev(a)/np.sqrt(pcov[0, 0]/N) == pytest.approx(1.0, 1e-4)
+    assert fit_result.stdev(b)/np.sqrt(pcov[1, 1]/N) == pytest.approx(1.0, 1e-4)
+    assert fit_result.stdev(c)/np.sqrt(pcov[2, 2]/N) == pytest.approx(1.0, 1e-4)
 
     # Finally, we should confirm that with unrealistic sigma and
     # absolute_sigma=True, we are no longer in agreement with the analytical result
@@ -426,12 +422,9 @@ def test_vector_parameter_error():
     )
     fit_result = fit2.execute()
     # Should be off bigly
-    assert not fit_result.stdev(
-        a)/np.sqrt(pcov[0, 0]/N) == pytest.approx(1.0, 1e-1)
-    assert not fit_result.stdev(
-        b)/np.sqrt(pcov[1, 1]/N) == pytest.approx(1.0, 1e-1)
-    assert not fit_result.stdev(
-        c)/np.sqrt(pcov[2, 2]/N) == pytest.approx(1.0, 1e-5)
+    assert not fit_result.stdev(a)/np.sqrt(pcov[0, 0]/N) == pytest.approx(1.0, 1e-1)
+    assert not fit_result.stdev(b)/np.sqrt(pcov[1, 1]/N) == pytest.approx(1.0, 1e-1)
+    assert not fit_result.stdev(c)/np.sqrt(pcov[2, 2]/N) == pytest.approx(1.0, 1e-5)
 
 
 def test_error_advanced():
@@ -462,15 +455,11 @@ def test_error_advanced():
     assert len(const_fit.model(x=xdata, y=ydata, a=2, b=2, c=5)) == 1
     assert const_fit.model(x=xdata, y=ydata, a=2, b=2, c=5)[0].shape == (10,)
 
-    assert len(const_fit.model.eval_jacobian(
-        x=xdata, y=ydata, a=2, b=2, c=5)) == 1
-    assert const_fit.model.eval_jacobian(x=xdata, y=ydata, a=2, b=2, c=5)[
-        0].shape == (3, 10)
+    assert len(const_fit.model.eval_jacobian(x=xdata, y=ydata, a=2, b=2, c=5)) == 1
+    assert const_fit.model.eval_jacobian(x=xdata, y=ydata, a=2, b=2, c=5)[0].shape == (3, 10)
 
-    assert len(const_fit.model.eval_hessian(
-        x=xdata, y=ydata, a=2, b=2, c=5)) == 1
-    assert const_fit.model.eval_hessian(x=xdata, y=ydata, a=2, b=2, c=5)[
-        0].shape == (3, 3, 10)
+    assert len(const_fit.model.eval_hessian(x=xdata, y=ydata, a=2, b=2, c=5)) == 1
+    assert const_fit.model.eval_hessian(x=xdata, y=ydata, a=2, b=2, c=5)[0].shape == (3, 3, 10)
 
     assert const_fit.objective(a=2, b=2, c=5).shape == tuple()
     assert const_fit.objective.eval_jacobian(a=2, b=2, c=5).shape == (3,)
@@ -493,12 +482,9 @@ def test_error_advanced():
     # Hessian we actually get a more accurate value from the standard fit
     # then for MINPACK. Hence we check if it is roughly equal, and if our
     # stdev is greater than that of minpack.
-    assert const_result.stdev(
-        a) / std_result.stdev(a) == pytest.approx(1, 1e-2)
-    assert const_result.stdev(
-        b) / std_result.stdev(b) == pytest.approx(1, 1e-1)
-    assert const_result.stdev(
-        c) / std_result.stdev(c) == pytest.approx(1, 1e-2)
+    assert const_result.stdev(a) / std_result.stdev(a) == pytest.approx(1, 1e-2)
+    assert const_result.stdev(b) / std_result.stdev(b) == pytest.approx(1, 1e-1)
+    assert const_result.stdev(c) / std_result.stdev(c) == pytest.approx(1, 1e-2)
 
     assert const_result.stdev(a) >= std_result.stdev(a)
     assert const_result.stdev(b) >= std_result.stdev(b)
@@ -535,33 +521,25 @@ def test_gaussian_2d_fitting():
     x = Variable('x')
     y = Variable('y')
     g = Variable('g')
-    model = GradientModel(
-        {g: A * Gaussian(x, x0, sig_x) * Gaussian(y, y0, sig_y)})
+    model = GradientModel({g: A * Gaussian(x, x0, sig_x) * Gaussian(y, y0, sig_y)})
     fit = Fit(model, x=xx, y=yy, g=ydata)
     fit_result = fit.execute()
 
     assert fit_result.value(x0) == pytest.approx(np.mean(data[:, 0]), 1e-3)
     assert fit_result.value(y0) == pytest.approx(np.mean(data[:, 1]), 1e-3)
-    assert np.abs(fit_result.value(sig_x)) == pytest.approx(
-        np.std(data[:, 0]), 1e-2)
-    assert np.abs(fit_result.value(sig_y)) == pytest.approx(
-        np.std(data[:, 1]), 1e-2)
+    assert np.abs(fit_result.value(sig_x)) == pytest.approx(np.std(data[:, 0]), 1e-2)
+    assert np.abs(fit_result.value(sig_y)) == pytest.approx(np.std(data[:, 1]), 1e-2)
     assert (fit_result.r_squared, 0.96)
 
     # Compare with industry standard MINPACK
     fit_std = Fit(model, x=xx, y=yy, g=ydata, minimizer=MINPACK)
     fit_std_result = fit_std.execute()
 
-    assert fit_std_result.value(x0) == pytest.approx(
-        fit_result.value(x0), 1e-4)
-    assert fit_std_result.value(y0) == pytest.approx(
-        fit_result.value(y0), 1e-4)
-    assert fit_std_result.value(sig_x) == pytest.approx(
-        fit_result.value(sig_x), 1e-4)
-    assert fit_std_result.value(sig_y) == pytest.approx(
-        fit_result.value(sig_y), 1e-4)
-    assert fit_std_result.r_squared == pytest.approx(
-        fit_result.r_squared, 1e-4)
+    assert fit_std_result.value(x0) == pytest.approx(fit_result.value(x0), 1e-4)
+    assert fit_std_result.value(y0) == pytest.approx(fit_result.value(y0), 1e-4)
+    assert fit_std_result.value(sig_x) == pytest.approx(fit_result.value(sig_x), 1e-4)
+    assert fit_std_result.value(sig_y) == pytest.approx(fit_result.value(sig_y), 1e-4)
+    assert fit_std_result.r_squared == pytest.approx(fit_result.r_squared, 1e-4)
 
 
 def test_fixed_and_constrained():
@@ -614,10 +592,8 @@ def test_fixed_and_constrained():
         assert id(fit.objective.data) == id(constraint.data)
 
         # Test if the fixed params have been partialed away
-        assert key2str(constraint._invariant_kwargs).keys(
-        ) == constraint_kwargs.keys()
-        assert key2str(fit.objective._invariant_kwargs).keys(
-        ) == objective_kwargs.keys()
+        assert key2str(constraint._invariant_kwargs).keys() == constraint_kwargs.keys()
+        assert key2str(fit.objective._invariant_kwargs).keys() == objective_kwargs.keys()
 
     # Compare the shapes. The constraint shape should now be the same as
     # that of the objective
@@ -738,23 +714,15 @@ def test_data_for_constraint():
     assert isinstance(fit.objective, LogLikelihood)
 
     # Not allowed
-    try:
+    with pytest.raises(TypeError):
         fit = Fit(model, x=xdata, y=ydata, Y=2)
-        assert False
-    except TypeError:
-        assert True
-
-    try:
+    with pytest.raises(TypeError):
         fit = Fit(model, x=xdata, y=ydata, Y=2, Z=3, constraints=[constraint])
-        assert False
-    except TypeError:
-        assert True
-
-    try:
+    # Since #214 has been fixed, these properly raise an error.
+    with pytest.raises(TypeError):
+        fit = Fit(model, x=xdata)
+    with pytest.raises(TypeError):
         fit = Fit(model, x=xdata, y=ydata, objective=LogLikelihood)
-        assert False
-    except TypeError:
-        assert True
 
 
 def test_constrained_dependent_on_model():
@@ -840,10 +808,8 @@ def test_constrained_dependent_on_model():
 
         # Finally, test if the constraint worked
         fit_result = fit.execute(options={'eps': 1e-15, 'ftol': 1e-10})
-        unconstr_value = fit.minimizer.wrapped_constraints[0]['fun'](
-            **unconstr_result.params)
-        constr_value = fit.minimizer.wrapped_constraints[0]['fun'](
-            **fit_result.params)
+        unconstr_value = fit.minimizer.wrapped_constraints[0]['fun'](**unconstr_result.params)
+        constr_value = fit.minimizer.wrapped_constraints[0]['fun'](**fit_result.params)
 
         # TODO because of a bug by pytest we have to solve it like this
         assert constr_value[0] == pytest.approx(0, abs=1e-10)
@@ -883,8 +849,7 @@ def test_constrained_dependent_on_matrixmodel():
     # Generate data, sample from a N(1.2, 2) distribution. Has to be 2D.
     np.random.seed(2)
     xdata = np.random.normal(1.2, 2, size=10000)
-    ydata, xedges = np.histogram(
-        xdata, bins=int(np.sqrt(len(xdata))), density=True)
+    ydata, xedges = np.histogram(xdata, bins=int(np.sqrt(len(xdata))), density=True)
     xcentres = np.atleast_2d((xedges[1:] + xedges[:-1]) / 2).T
     xdiff = np.atleast_2d((xedges[1:] - xedges[:-1])).T
     ydata = np.atleast_2d(ydata).T
@@ -899,12 +864,9 @@ def test_constrained_dependent_on_matrixmodel():
 
     constraint = CallableModel({Y: Sum(y[i, 0] * dx[i, 0], i) - 1})
 
-    try:
+    with pytest.raises(ModelError):
         fit = Fit(model, x=xcentres, y=ydata, dx=xdiff, M=len(xcentres),
                   I=Idata, constraints=[constraint])
-        assert False
-    except ModelError:
-        assert True
 
     constraint = CallableModel.as_constraint(
         {Y: Sum(y[i, 0] * dx[i, 0], i) - 1},
@@ -998,10 +960,8 @@ def test_fixed_and_constrained_tc():
         assert id(fit.objective.data) == id(constraint.data)
 
         # Test if the data and fixed params have been partialed away
-        assert key2str(constraint._invariant_kwargs).keys(
-        ) == constraint_kwargs.keys()
-        assert key2str(fit.objective._invariant_kwargs).keys(
-        ) == objective_kwargs.keys()
+        assert key2str(constraint._invariant_kwargs).keys() == constraint_kwargs.keys()
+        assert key2str(fit.objective._invariant_kwargs).keys() == objective_kwargs.keys()
 
     # Compare the shapes. The constraint shape should now be the same as
     # that of the objective
