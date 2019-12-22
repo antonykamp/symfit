@@ -8,16 +8,16 @@ def setup_method():
 
 
 @pytest.mark.parametrize(
-    'x_eval, x_finite', [(np.arange(10), 3), (3, np.arange)]
+        'x_data', [np.arange(10), 3]
 )
-def test_1_1_model(x_eval, x_finite):
+def test_1_1_model(x_data):
     '''Tests the case with 1 component and 1 parameter'''
     x, y = sf.variables('x, y')
     a = sf.Parameter(name='a')
     model = sf.Model({y: 3 * a * x**2})
 
-    exact = model.eval_jacobian(x=x_eval, a=3.5)
-    approx = model.finite_difference(x=x_finite, a=3.5)
+    exact = model.eval_jacobian(x=x_data, a=3.5)
+    approx = model.finite_difference(x=x_data, a=3.5)
     _assert_equal(exact, approx)
 
 
@@ -202,4 +202,4 @@ def test_harmonic_oscillator_errors():
 def _assert_equal(exact, approx, **kwargs):
     assert len(exact) == len(approx)
     for exact_comp, approx_comp in zip(exact, approx):
-        assert approx_comp == pytest.approx(exact_comp, **kwargs)
+        assert approx_comp == pytest.approx(exact_comp, 1e-4)
